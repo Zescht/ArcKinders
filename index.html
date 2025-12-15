@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARC RAIDERS COUNTDOWN</title>
+    <style>
+        /* IMPORT: Retro-Tech Schriftart */
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --arc-orange: #ff5e00;
+            --arc-dim: #5c2200;
+            --bg-color: #050505;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--arc-orange);
+            font-family: 'Share Tech Mono', monospace;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            text-transform: uppercase;
+        }
+
+        /* --- CRT MONITOR EFFEKTE --- */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: 0 0 150px rgba(0,0,0,0.9) inset;
+            pointer-events: none;
+            z-index: 9;
+        }
+
+        /* --- HUD CONTAINER --- */
+        .hud-container {
+            border: 2px solid var(--arc-dim);
+            padding: 40px;
+            position: relative;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 94, 0, 0.1);
+            background: rgba(20, 10, 0, 0.3);
+            max-width: 90%;
+        }
+
+        /* Dekorative Ecken (Brackets) */
+        .hud-container::before, .hud-container::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--arc-orange);
+            transition: all 0.2s ease;
+        }
+
+        .hud-container::before { top: -2px; left: -2px; border-bottom: none; border-right: none; }
+        .hud-container::after { bottom: -2px; right: -2px; border-top: none; border-left: none; }
+
+        /* --- TEXT STYLES --- */
+        h1 {
+            font-size: 1.5rem;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px var(--arc-orange);
+            animation: flicker 3s infinite;
+        }
+
+        .status-line {
+            font-size: 0.8rem;
+            color: var(--arc-dim);
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--arc-dim);
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        /* --- COUNTDOWN STYLES --- */
+        #countdown {
+            font-size: 5rem;
+            font-weight: bold;
+            text-shadow: 0 0 15px var(--arc-orange);
+            letter-spacing: 5px;
+        }
+
+        .label {
+            font-size: 0.9rem;
+            color: rgba(255, 94, 0, 0.6);
+            margin-top: -10px;
+        }
+
+        /* --- FLICKER ANIMATION --- */
+        @keyframes flicker {
+            0% { opacity: 0.9; }
+            5% { opacity: 0.8; }
+            10% { opacity: 1; }
+            15% { opacity: 0.95; }
+            20% { opacity: 1; }
+            50% { opacity: 0.9; }
+            55% { opacity: 0.7; }
+            60% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.1rem; }
+            #countdown { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="crt-overlay"></div>
+    <div class="vignette"></div>
+
+    <div class="hud-container">
+        <div class="status-line">MISSION: DAILY RESET // TARGET: 1700 CET</div>
+        
+        <h1>Cola trinken - Looten - Kinder ärgern</h1>
+        
+        <div id="countdown">--:--:--</div>
+        <div class="label">T-MINUS BIS START</div>
+    </div>
+
+    <script>
+        function updateCountdown() {
+            const now = new Date();
+            let target = new Date();
+
+            // Setze Zielzeit auf 17:00:00
+            target.setHours(17, 0, 0, 0);
+
+            // Wenn 17:00 heute schon vorbei ist, setze Ziel auf morgen
+            if (now > target) {
+                target.setDate(target.getDate() + 1);
+            }
+
+            const diff = target - now;
+
+            // Berechne Stunden, Minuten, Sekunden
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            // Formatierung mit führenden Nullen
+            const h = hours < 10 ? "0" + hours : hours;
+            const m = minutes < 10 ? "0" + minutes : minutes;
+            const s = seconds < 10 ? "0" + seconds : seconds;
+
+            // Anzeige aktualisieren
+            document.getElementById("countdown").innerText = `${h}:${m}:${s}`;
+        }
+
+        // Initiale Ausführung und Intervall setzen
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    </script>
+</body>
+</html>
