@@ -9,9 +9,10 @@
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
         :root {
-            --arc-orange: #ff5e00;
+            --arc-orange: #ff7b00; /* Etwas helleres Orange für besseren Kontrast */
+            --arc-glow: #ffaa44;
             --arc-dim: #5c2200;
-            --bg-color: #050505;
+            --bg-color: #020101;
         }
 
         body {
@@ -26,19 +27,52 @@
             justify-content: center;
             overflow: hidden;
             text-transform: uppercase;
+            position: relative;
         }
 
-        /* --- CRT MONITOR EFFEKTE --- */
+        /* --- HINTERGRUND EBENEN --- */
+        
+        /* Canvas für Staub-Partikel (Bewegung) */
+        #dust-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Parallax Hintergrundbild (Interaktiv) */
+        .bg-parallax-layer {
+            position: fixed;
+            top: -5%;
+            left: -5%;
+            width: 110%;
+            height: 110%;
+            /* Platzhalter-Bild im ARC-Stil. Wenn der Link down ist, greift der Gradient */
+            background: linear-gradient(to bottom, rgba(20,10,0,0.8), rgba(0,0,0,1)), url('https://images.unsplash.com/photo-1614728263952-84ea256f9679?q=80&w=2000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+            filter: sepia(100%) hue-rotate(-30deg) saturate(150%) contrast(120%); /* Macht das Bild orange/rostig */
+            transition: transform 0.1s ease-out;
+        }
+
+        /* --- CRT MONITOR EFFEKTE (Vordergrund) --- */
         .crt-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%;
+            background: 
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 3px, 3px 100%;
             pointer-events: none;
             z-index: 10;
+            opacity: 0.7;
         }
 
         .vignette {
@@ -47,101 +81,103 @@
             left: 0;
             width: 100%;
             height: 100%;
-            box-shadow: 0 0 150px rgba(0,0,0,0.9) inset;
+            box-shadow: 0 0 200px rgba(0,0,0,1) inset;
             pointer-events: none;
             z-index: 9;
         }
 
         /* --- HUD CONTAINER --- */
         .hud-container {
-            border: 2px solid var(--arc-dim);
-            padding: 40px;
             position: relative;
+            z-index: 5; /* Über dem Hintergrund, unter dem CRT Effekt */
+            border: 2px solid var(--arc-orange);
+            padding: 50px 60px;
             text-align: center;
-            box-shadow: 0 0 20px rgba(255, 94, 0, 0.1);
-            background: rgba(20, 10, 0, 0.3);
+            box-shadow: 0 0 30px rgba(255, 94, 0, 0.2), inset 0 0 30px rgba(255, 94, 0, 0.1);
+            background: rgba(20, 10, 0, 0.7); /* Dunklerer, transparenter Hintergrund */
+            backdrop-filter: blur(2px);
             max-width: 90%;
         }
 
-        /* Dekorative Ecken (Brackets) */
-        .hud-container::before, .hud-container::after {
-            content: '';
+        /* Dekorative Ecken (Brackets) - jetzt leuchtend */
+        .bracket {
             position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--arc-orange);
-            transition: all 0.2s ease;
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--arc-orange);
+            box-shadow: 0 0 10px var(--arc-orange);
         }
+        .tl { top: -5px; left: -5px; border-bottom: none; border-right: none; }
+        .tr { top: -5px; right: -5px; border-bottom: none; border-left: none; }
+        .bl { bottom: -5px; left: -5px; border-top: none; border-right: none; }
+        .br { bottom: -5px; right: -5px; border-top: none; border-left: none; }
 
-        .hud-container::before { top: -2px; left: -2px; border-bottom: none; border-right: none; }
-        .hud-container::after { bottom: -2px; right: -2px; border-top: none; border-left: none; }
 
         /* --- TEXT STYLES --- */
         h1 {
-            font-size: 1.5rem;
-            letter-spacing: 3px;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px var(--arc-orange);
-            animation: flicker 3s infinite;
-        }
-
-        .status-line {
-            font-size: 0.8rem;
-            color: var(--arc-dim);
-            margin-bottom: 40px;
-            border-bottom: 1px solid var(--arc-dim);
-            display: inline-block;
-            padding-bottom: 5px;
+            font-size: 1.8rem;
+            letter-spacing: 4px;
+            margin-bottom: 30px;
+            color: var(--arc-glow);
+            text-shadow: 0 0 15px var(--arc-orange);
+            animation: flickerText 4s infinite;
         }
 
         /* --- COUNTDOWN STYLES --- */
         #countdown {
-            font-size: 5rem;
+            font-size: 6rem;
             font-weight: bold;
-            text-shadow: 0 0 15px var(--arc-orange);
-            letter-spacing: 5px;
+            color: var(--arc-orange);
+            text-shadow: 0 0 20px var(--arc-orange), 0 0 5px rgba(255,255,255,0.5);
+            letter-spacing: 8px;
+            line-height: 1;
         }
 
         .label {
-            font-size: 0.9rem;
-            color: rgba(255, 94, 0, 0.6);
-            margin-top: -10px;
+            font-size: 1rem;
+            color: var(--arc-orange);
+            opacity: 0.7;
+            margin-top: 10px;
+            letter-spacing: 2px;
         }
 
-        /* --- FLICKER ANIMATION --- */
-        @keyframes flicker {
-            0% { opacity: 0.9; }
-            5% { opacity: 0.8; }
-            10% { opacity: 1; }
-            15% { opacity: 0.95; }
-            20% { opacity: 1; }
-            50% { opacity: 0.9; }
-            55% { opacity: 0.7; }
-            60% { opacity: 1; }
-            100% { opacity: 1; }
+        /* --- ANIMATIONS --- */
+        @keyframes flickerText {
+            0%, 100% { opacity: 1; text-shadow: 0 0 15px var(--arc-orange); }
+            50% { opacity: 0.8; text-shadow: 0 0 5px var(--arc-orange); }
+            52% { opacity: 0.4; text-shadow: none; }
+            54% { opacity: 0.8; text-shadow: 0 0 5px var(--arc-orange); }
         }
 
-        @media (max-width: 600px) {
-            h1 { font-size: 1.1rem; }
-            #countdown { font-size: 3rem; }
+        @media (max-width: 768px) {
+            h1 { font-size: 1.2rem; letter-spacing: 2px; }
+            #countdown { font-size: 3.5rem; letter-spacing: 4px; }
+            .hud-container { padding: 30px 20px; }
         }
     </style>
 </head>
 <body>
 
+    <div class="bg-parallax-layer" id="parallax-bg"></div>
+    <canvas id="dust-canvas"></canvas>
+
     <div class="crt-overlay"></div>
     <div class="vignette"></div>
 
     <div class="hud-container">
-        <div class="status-line">MISSION: DAILY RESET // TARGET: 1700 CET</div>
+        <div class="bracket tl"></div>
+        <div class="bracket tr"></div>
+        <div class="bracket bl"></div>
+        <div class="bracket br"></div>
         
         <h1>Cola trinken - Looten - Kinder ärgern</h1>
         
         <div id="countdown">--:--:--</div>
-        <div class="label">T-MINUS BIS START</div>
+        <div class="label">ZEIT BIS EINSATZ (17:00 CET)</div>
     </div>
 
     <script>
+        // --- 1. COUNTDOWN LOGIK (unverändert) ---
         function updateCountdown() {
             const now = new Date();
             let target = new Date();
@@ -156,23 +192,99 @@
 
             const diff = target - now;
 
-            // Berechne Stunden, Minuten, Sekunden
             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-            // Formatierung mit führenden Nullen
             const h = hours < 10 ? "0" + hours : hours;
             const m = minutes < 10 ? "0" + minutes : minutes;
             const s = seconds < 10 ? "0" + seconds : seconds;
 
-            // Anzeige aktualisieren
             document.getElementById("countdown").innerText = `${h}:${m}:${s}`;
         }
 
-        // Initiale Ausführung und Intervall setzen
         updateCountdown();
         setInterval(updateCountdown, 1000);
+
+
+        // --- 2. PARALLAX HINTERGRUND (Interaktiv) ---
+        document.addEventListener('mousemove', (e) => {
+            const bg = document.getElementById('parallax-bg');
+            const x = (window.innerWidth - e.pageX * 2) / 90; // Bewegungsstärke anpassen
+            const y = (window.innerHeight - e.pageY * 2) / 90;
+            
+            bg.style.transform = `translate(${x}px, ${y}px) scale(1.05)`;
+        });
+
+
+        // --- 3. CANVAS STAUB PARTIKEL (Bewegend) ---
+        const canvas = document.getElementById('dust-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + Math.random() * 200; // Start unterhalb des Screens
+                this.directionX = (Math.random() * 0.4) - 0.2; // Leichte seitliche Drift
+                this.directionY = (Math.random() * 0.7) + 0.3; // Geschwindigkeit nach oben
+                this.size = (Math.random() * 2) + 0.5;
+                this.opacity = (Math.random() * 0.5) + 0.1;
+                // Farbe: Mix aus Orange und Weiß für Glut-Effekt
+                this.color = Math.random() > 0.8 ? 'rgba(255, 255, 255,' : 'rgba(255, 123, 0,';
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color + this.opacity + ')';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "orange";
+                ctx.fill();
+            }
+
+            update() {
+                this.y -= this.directionY;
+                this.x += this.directionX;
+                
+                // Reset wenn Partikel oben rausfliegt
+                if (this.y < 0 - this.size) {
+                    this.x = Math.random() * canvas.width;
+                    this.y = canvas.height + Math.random() * 100;
+                    this.opacity = (Math.random() * 0.5) + 0.1;
+                }
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 9000; // Dichte anpassen
+            for (let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+        }
+
+        // Resize Handler
+        window.addEventListener('resize', () => {
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+            initParticles();
+        });
+
+        initParticles();
+        animateParticles();
     </script>
 </body>
 </html>
