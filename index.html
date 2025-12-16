@@ -5,13 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARC RAIDERS COUNTDOWN</title>
     <style>
-        /* IMPORT: Retro-Tech Schriftart */
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
         :root {
             --arc-orange: #ff9d00;
             --arc-glow: #ffb84d;
             --bg-color: #050505;
+            
+            /* Stripe Colors */
+            --stripe-red: #ff3333;
+            --stripe-yellow: #ffcc00;
+            --stripe-green: #33cc33;
+            --stripe-cyan: #00ccff;
         }
 
         body {
@@ -29,42 +34,24 @@
             position: relative;
         }
 
-        /* --- 1. HINTERGRUND (Sichtbar & Interaktiv) --- */
-        .bg-parallax-layer {
-            position: fixed;
-            top: -5%;
-            left: -5%;
-            width: 110%;
-            height: 110%;
-            z-index: 0;
-            
-            /* Ein passendes Landschaftsbild (Ödland/Sci-Fi) */
-            background-image: url('https://images.unsplash.com/photo-1542256840-025ee743a6d7?q=80&w=2000&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            
-            /* Wir färben das Bild orange ein, damit es zum Spiel passt */
-            filter: sepia(100%) hue-rotate(-30deg) saturate(150%) contrast(110%) brightness(0.7);
-            
-            transition: transform 0.1s ease-out;
-        }
-
-        /* --- 2. STAUB PARTIKEL (Bewegung) --- */
-        #dust-canvas {
+        /* --- 1. HINTERGRUND (Statisch) --- */
+        .bg-layer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1; /* Über dem Bild */
-            pointer-events: none;
+            z-index: 0;
+            background-image: url('https://i.imgur.com/eJTKCgx.jpeg');
+            background-size: cover;
+            background-position: center;
+            filter: sepia(100%) hue-rotate(-30deg) saturate(120%) contrast(110%) brightness(0.6);
         }
 
-        /* --- 3. RETRO MONITOR EFFEKTE (Scanlines & Vignette) --- */
+        /* --- 2. OVERLAYS --- */
         .crt-overlay {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            /* Subtile Scanlines */
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
             background-size: 100% 4px;
             pointer-events: none;
@@ -75,27 +62,85 @@
         .vignette {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            /* Dunkle Ränder, aber Mitte heller lassen */
-            box-shadow: 0 0 150px rgba(0,0,0,0.8) inset; 
+            box-shadow: 0 0 150px rgba(0,0,0,0.8) inset;
             pointer-events: none;
             z-index: 9;
         }
 
-        /* --- 4. HUD / TEXT CONTAINER --- */
+        /* --- 3. CSS STRIPES (CORRECTED: Bottom Right to Top Left) --- */
+        .stripes-container {
+            position: fixed;
+            bottom: -20px; /* Tuck the bottom slightly */
+            /* Moved right so the top leans into the left wall */
+            left: 100px; 
+            height: 350px;
+            display: flex;
+            gap: 15px; /* Space between stripes */
+            z-index: 100;
+            
+            /* POSITIVE SKEW makes them lean LEFT (\) */
+            /* transform-origin ensures we rotate from the base */
+            transform-origin: bottom left;
+            transform: skew(35deg); 
+            
+            pointer-events: none;
+        }
+
+        .stripe {
+            width: 20px;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 2px 2px 15px rgba(0,0,0,0.7);
+        }
+
+        /* Assign Colors */
+        .stripe.cyan   { background-color: var(--stripe-cyan); height: 80%; margin-top: auto; }
+        .stripe.green  { background-color: var(--stripe-green); height: 90%; margin-top: auto; }
+        .stripe.yellow { background-color: var(--stripe-yellow); height: 100%; margin-top: auto; }
+        .stripe.red    { background-color: var(--stripe-red); height: 110%; margin-top: auto; }
+
+        /* Lightbeam Animation Layer */
+        .stripe::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Shining beam effect */
+            background: linear-gradient(to bottom, transparent 20%, rgba(255, 255, 255, 0.9) 50%, transparent 80%);
+            
+            /* Start below the stripe */
+            transform: translateY(150%);
+            /* Moves UP (which visually looks like moving top-left due to skew) */
+            animation: lightBeam 3s infinite cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        /* Stagger the animations */
+        .stripe.cyan::after   { animation-delay: 0.0s; }
+        .stripe.green::after  { animation-delay: 0.1s; }
+        .stripe.yellow::after { animation-delay: 0.2s; }
+        .stripe.red::after    { animation-delay: 0.3s; }
+
+        @keyframes lightBeam {
+            0% { transform: translateY(150%); }
+            100% { transform: translateY(-150%); }
+        }
+
+        /* --- 4. HUD --- */
         .hud-container {
             position: relative;
             z-index: 5;
             border: 2px solid var(--arc-orange);
             padding: 40px 50px;
             text-align: center;
-            /* Leuchtender Rahmen */
             box-shadow: 0 0 30px rgba(255, 157, 0, 0.2), inset 0 0 20px rgba(255, 157, 0, 0.1);
-            background: rgba(10, 5, 0, 0.75); /* Halbtransparenter Hintergrund für Lesbarkeit */
+            background: rgba(10, 5, 0, 0.75);
             backdrop-filter: blur(4px);
             max-width: 90%;
         }
 
-        /* Dekorative Ecken (Brackets) */
         .bracket { position: absolute; width: 20px; height: 20px; border: 3px solid var(--arc-orange); box-shadow: 0 0 10px var(--arc-orange); }
         .tl { top: -2px; left: -2px; border-bottom: none; border-right: none; }
         .tr { top: -2px; right: -2px; border-bottom: none; border-left: none; }
@@ -128,7 +173,6 @@
             letter-spacing: 2px;
         }
 
-        /* Animationen */
         @keyframes pulseText {
             0% { text-shadow: 0 0 10px var(--arc-orange); opacity: 1; }
             100% { text-shadow: 0 0 20px var(--arc-orange); opacity: 0.8; }
@@ -138,17 +182,24 @@
             h1 { font-size: 1.1rem; }
             #countdown { font-size: 3rem; }
             .hud-container { padding: 30px 20px; }
+            /* Adjust stripes for mobile */
+            .stripes-container { left: 60px; height: 200px; gap: 8px; }
+            .stripe { width: 12px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="bg-parallax-layer" id="parallax-bg"></div>
-    
-    <canvas id="dust-canvas"></canvas>
-
+    <div class="bg-layer"></div>
     <div class="crt-overlay"></div>
     <div class="vignette"></div>
+
+    <div class="stripes-container">
+        <div class="stripe cyan"></div>
+        <div class="stripe green"></div>
+        <div class="stripe yellow"></div>
+        <div class="stripe red"></div>
+    </div>
 
     <div class="hud-container">
         <div class="bracket tl"></div>
@@ -163,21 +214,15 @@
     </div>
 
     <script>
-        // --- COUNTDOWN LOGIK ---
         function updateCountdown() {
             const now = new Date();
             let target = new Date();
-            
-            // Setze Zielzeit auf 17:00:00
             target.setHours(17, 0, 0, 0);
-
-            // Wenn 17:00 heute schon vorbei ist, nimm morgen 17:00
             if (now > target) {
                 target.setDate(target.getDate() + 1);
             }
 
             const diff = target - now;
-
             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diff % (1000 * 60)) / 1000);
@@ -190,81 +235,6 @@
         }
         updateCountdown();
         setInterval(updateCountdown, 1000);
-
-        // --- PARALLAX HINTERGRUND ---
-        document.addEventListener('mousemove', (e) => {
-            const bg = document.getElementById('parallax-bg');
-            // Bewegungsfaktor (je kleiner der Teiler, desto stärker die Bewegung)
-            const x = (window.innerWidth - e.pageX * 2) / 90; 
-            const y = (window.innerHeight - e.pageY * 2) / 90;
-            bg.style.transform = `translate(${x}px, ${y}px) scale(1.02)`;
-        });
-
-        // --- PARTIKEL SYSTEM (Staub/Glut) ---
-        const canvas = document.getElementById('dust-canvas');
-        const ctx = canvas.getContext('2d');
-        let particlesArray;
-
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = canvas.height + Math.random() * 200;
-                this.directionX = (Math.random() * 0.4) - 0.2;
-                this.directionY = (Math.random() * 0.5) + 0.3; // Steigen langsam auf
-                this.size = (Math.random() * 2) + 0.5;
-                this.opacity = (Math.random() * 0.5) + 0.2;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-                // Farbe: Leuchtendes Orange/Weiß
-                ctx.fillStyle = `rgba(255, 160, 50, ${this.opacity})`;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = "#ff8000"; // Glüheffekt
-                ctx.fill();
-            }
-            update() {
-                this.y -= this.directionY;
-                this.x += this.directionX;
-                // Reset wenn oben raus
-                if (this.y < -10) {
-                    this.x = Math.random() * canvas.width;
-                    this.y = canvas.height + 10;
-                    this.opacity = (Math.random() * 0.5) + 0.2;
-                }
-                this.draw();
-            }
-        }
-
-        function initParticles() {
-            particlesArray = [];
-            // Anzahl Partikel basierend auf Bildschirmgröße
-            let numberOfParticles = (canvas.height * canvas.width) / 9000;
-            for (let i = 0; i < numberOfParticles; i++) {
-                particlesArray.push(new Particle());
-            }
-        }
-
-        function animateParticles() {
-            requestAnimationFrame(animateParticles);
-            ctx.clearRect(0, 0, innerWidth, innerHeight);
-            for (let i = 0; i < particlesArray.length; i++) {
-                particlesArray[i].update();
-            }
-        }
-
-        // Resize Fix
-        window.addEventListener('resize', () => {
-            canvas.width = innerWidth;
-            canvas.height = innerHeight;
-            initParticles();
-        });
-
-        initParticles();
-        animateParticles();
     </script>
 </body>
 </html>
